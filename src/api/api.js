@@ -1,7 +1,8 @@
 import axios from 'axios'
 
 let base = '/apis'
-// axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8'
+axios.defaults.headers.post['Content-Type'] = 'application/json; charset=UTF-8'
+
 // 登录
 export const requestLogin = params => { return axios.post(`${base}/loginSubmit`, params).then(res => res.data) }
 
@@ -16,3 +17,6 @@ export const editUserInfo = params => { return axios.post(`${base}/updateUserInf
 
 // 用户出款信息
 export const withdrawalByUserId = params => { return axios.post(`${base}/withdrawalByUserId`, params).then(res => res.data) }
+
+// 用户存款信息
+export const depositListByUserId = params => { return axios.post(`${base}/depositListByUserId`, params).then(res => res.data) }

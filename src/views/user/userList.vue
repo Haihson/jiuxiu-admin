@@ -121,7 +121,7 @@
         </el-tab-pane>
         <el-tab-pane label="提款信息" name="2">
           <el-table :data="withdrawals" highlight-current-row style="width: 100%;">
-            <el-table-column prop="userId" label="序号"></el-table-column>
+            <el-table-column prop="userId" label="序号" width="50"></el-table-column>
             <el-table-column prop="userName" label="姓名"></el-table-column>
             <el-table-column prop="bankName" label="银行"></el-table-column>
             <el-table-column prop="branchbankName" label="支行"></el-table-column>
@@ -135,7 +135,22 @@
             <el-table-column prop="district" label="街道"></el-table-column>
           </el-table>
         </el-tab-pane>
-        <el-tab-pane label="存款信息" name="3">存款信息</el-tab-pane>
+        <el-tab-pane label="存款信息" name="3">
+          <el-table :data="depositList" highlight-current-row style="width: 100%;">
+            <el-table-column prop="userId" label="序号" width="50"></el-table-column>
+            <el-table-column prop="orderNo" label="订单号"></el-table-column>
+            <el-table-column prop="serialNumber" label="流水号"></el-table-column>
+            <el-table-column prop="offlineBankName" label="银行"></el-table-column>
+            <el-table-column prop="offlinearea" label="地区"></el-table-column>
+            <el-table-column prop="offlineProvince" label="省"></el-table-column>
+            <el-table-column prop="offlineAccountname" label="市"></el-table-column>
+            <el-table-column prop="userName" label="姓名"></el-table-column>
+            <el-table-column prop="bankCode" label="银行简称"></el-table-column>
+            <el-table-column prop="createtime" label="创建时间"></el-table-column>
+            <el-table-column prop="status" label="状态"></el-table-column>
+            <el-table-column prop="actualAmount" label="actualAmount"></el-table-column>
+          </el-table>
+        </el-tab-pane>
         <el-tab-pane label="转账信息" name="4">转账信息</el-tab-pane>
         <el-tab-pane label="余额日志信息" name="5">余额日志信息</el-tab-pane>
         <el-tab-pane label="反水信息" name="6">反水信息</el-tab-pane>
@@ -195,7 +210,7 @@
 </template>
 
 <script>
-  import { requestUserList, requestUserDetail, editUserInfo, withdrawalByUserId } from '@/api/api'
+  import { requestUserList, requestUserDetail, editUserInfo, withdrawalByUserId, depositListByUserId } from '@/api/api'
   import ElForm from '../../../node_modules/element-ui/packages/form/src/form.vue'
 
   export default {
@@ -233,7 +248,8 @@
             {required: true, message: '请输入手机号码', trigger: 'blur'}
           ]
         },
-        withdrawals: []
+        withdrawals: [],
+        depositList: []
       }
     },
     methods: {
@@ -258,6 +274,8 @@
           this.getUserDetail(row.userId)
         } else if (this.userTabName === '2') {
           this.getWithdrawalByUserId(row.userId)
+        } else if (this.userTabName === '3') {
+          this.getDepositListByUserId(row.userId)
         }
         console.log(index + ' - ' + row)
       },
@@ -277,6 +295,8 @@
           this.getUserDetail()
         } else if (tab.label === '提款信息') {
           this.getWithdrawalByUserId(this.userDetail.userId)
+        } else if (tab.label === '存款信息') {
+          this.getDepositListByUserId(this.userDetail.userId)
         }
       },
       editUserInfo () {
@@ -318,7 +338,7 @@
         })
       },
       getUserList () {
-        let para = 'userId=26&pageNumber=' + this.pageIndex
+        let para = {userId: 26, pageNumber: this.pageIndex}
         this.listLoading = true
         requestUserList(para).then((res) => {
           let {status, data, currentPageNumber, totalNumber} = res
@@ -330,7 +350,7 @@
         })
       },
       getUserDetail (userId) {
-        let para = 'userId=' + userId
+        let para = {userId: userId}
         requestUserDetail(para).then((res) => {
           let {status, data} = res
           console.log(status)
@@ -338,11 +358,19 @@
         })
       },
       getWithdrawalByUserId (userId) {
-        let para = 'userId=' + userId
+        let para = {userId: userId}
         withdrawalByUserId(para).then((res) => {
           let {status, data} = res
           console.log(status)
           this.withdrawals = data
+        })
+      },
+      getDepositListByUserId (userId) {
+        let para = {userId: userId}
+        depositListByUserId(para).then((res) => {
+          let {status, data} = res
+          console.log(status)
+          this.depositList = data
         })
       }
     },

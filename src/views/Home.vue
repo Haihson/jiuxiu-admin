@@ -147,6 +147,8 @@
       overflow: hidden;
       aside {
         width: 230px;
+        height: 100%;
+        overflow-y: scroll;
       }
       .content-container {
         background: #ffffff;

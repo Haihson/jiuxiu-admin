@@ -53,8 +53,8 @@
         this.$refs.loginForm.validate((valid) => {
           if (valid) {
             this.logining = true
-            // var loginParams = {userName: this.loginForm.account, password: this.loginForm.checkPass}
-            var loginParams = 'userName=' + this.loginForm.account + '&password=' + this.loginForm.checkPass
+            var loginParams = {userName: this.loginForm.account, password: this.loginForm.checkPass}
+            // var loginParams = 'userName=' + this.loginForm.account + '&password=' + this.loginForm.checkPass
             requestLogin(loginParams).then(res => {
               this.logining = false
               let {status, data} = res
