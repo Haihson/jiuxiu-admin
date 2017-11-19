@@ -20,3 +20,15 @@ export const withdrawalByUserId = params => { return axios.post(`${base}/withdra
 
 // 用户存款信息
 export const depositListByUserId = params => { return axios.post(`${base}/depositListByUserId`, params).then(res => res.data) }
+
+// 用户转账信息
+export const transferListByUserId = params => { return axios.post(`${base}/transferListByUserId`, params).then(res => res.data) }
+
+// 用户余额变动信息
+export const balanceChangeByUserId = params => { return axios.post(`${base}/balanceChangeByUserId`, params).then(res => res.data) }
+
+// 存款管理
+export const depositOrders = params => { return axios.post(`${base}/depositOrdersByCondition`, params).then(res => res.data) }
+
+// 优惠券管理
+export const promotionList = params => { return axios.post(`${base}/promotionList`, params).then(res => res.data) }

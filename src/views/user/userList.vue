@@ -1,53 +1,75 @@
 <template>
   <section>
-    <!--工具条-->
-    <el-col :span="24" class="toolbar">
-      <el-form :inline="true" :model="filters">
-        <el-form-item>
-          <el-input v-model="filters.name" placeholder="姓名"></el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary">查询</el-button>
-        </el-form-item>
-      </el-form>
-    </el-col>
+    <div class="userlist-part" v-loading="listLoading">
+      <!--工具条-->
+      <el-col :span="24" class="toolbar">
+        <el-form :inline="true" :model="filters">
+          <el-form-item>
+            <el-input v-model="filters.name" placeholder="姓名、手机号、邮件"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-select v-model="filters.status" placeholder="请选择">
+              <el-option
+                v-for="item in options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-date-picker
+              v-model="filters.dateRange"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              value-format="yyyy-MM-dd">
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="getUserList">查询</el-button>
+          </el-form-item>
+        </el-form>
+      </el-col>
 
-    <!--列表-->
-    <el-table :data="users" highlight-current-row v-loading="listLoading" style="width: 100%;">
-      <!--<el-table-column type="index" width="50"></el-table-column>-->
-      <el-table-column prop="userId" label="序号" width="50"></el-table-column>
-      <el-table-column prop="userName" label="姓名" width="120"></el-table-column>
-      <el-table-column prop="sex" label="性别" width="80" :formatter="formatSex" sortable></el-table-column>
-      <el-table-column prop="phone" label="手机号码" width="130"></el-table-column>
-      <el-table-column prop="email" label="邮箱" width="140"></el-table-column>
-      <el-table-column prop="startTime" label="开始时间" width="130"></el-table-column>
-      <el-table-column prop="endTime" label="结束时间" width="130"></el-table-column>
-      <el-table-column prop="status" label="状态" :formatter="formatStatus"></el-table-column>
-      <el-table-column label="操作" width="90">
-        <template slot-scope="scope">
-          <el-button type="primary" @click="userDetailClick(scope.$index, scope.row)" size="small">详情</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+      <!--列表-->
+      <el-table :data="users" highlight-current-row style="width: 100%;">
+        <!--<el-table-column type="index" width="50"></el-table-column>-->
+        <el-table-column prop="userId" label="序号" width="50"></el-table-column>
+        <el-table-column prop="userName" label="姓名" width="120"></el-table-column>
+        <el-table-column prop="sex" label="性别" width="80" :formatter="formatSex" sortable></el-table-column>
+        <el-table-column prop="phone" label="手机号码" width="130"></el-table-column>
+        <el-table-column prop="email" label="邮箱" width="140"></el-table-column>
+        <el-table-column prop="startTime" label="开始时间" width="130"></el-table-column>
+        <el-table-column prop="endTime" label="结束时间" width="130"></el-table-column>
+        <el-table-column prop="status" label="状态" :formatter="formatStatus"></el-table-column>
+        <el-table-column label="操作" width="90">
+          <template slot-scope="scope">
+            <el-button type="primary" @click="userDetailClick(scope.$index, scope.row)" size="small">详情</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <!-- 分页 -->
-    <el-col :span="24" class="toolbar" style="text-align: center; padding-top: 10px;">
-      <el-pagination
-        @size-change="handleSizeChange"
-        @current-change="handleIndexChange"
-        :page-size="pageSize"
-        :page-sizes="[10]"
-        :current-page="pageIndex"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="sourceTotal">
-      </el-pagination>
-    </el-col>
+      <!-- 分页 -->
+      <el-col :span="24" class="toolbar" style="text-align: center; padding-top: 10px;">
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleIndexChange"
+          :page-size="pageSize"
+          :page-sizes="[10]"
+          :current-page="pageIndex"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="sourceTotal">
+        </el-pagination>
+      </el-col>
+    </div>
 
     <!-- Tab页卡 -->
     <el-dialog :title="currtUser" :visible="userTabVisible" width="100%" :close-on-click-modal="false"
-               @close="userTabVisible=false" top="5vh" :fullscreen="true">
+               @close="userTabVisible=false" top="5vh" :fullscreen="true" custom-class="dialog-body-padding">
       <el-tabs v-model="userTabName" type="card" @tab-click="tabHandleClick">
-        <el-tab-pane label="账户信息" name="1" class="tab-user-info">
+        <el-tab-pane label="账户信息" name="1" class="tab-user-info" v-loading="tabLoading">
           <el-button type="primary" @click="editUserInfo">修改</el-button>
           <form class="el-form el-form--label-left el-form--inline">
             <div class="el-form-item"><label class="el-form-item__label">姓名</label>
@@ -119,7 +141,7 @@
             </div>
           </form>
         </el-tab-pane>
-        <el-tab-pane label="提款信息" name="2">
+        <el-tab-pane label="出款信息" name="2" v-loading="tabLoading">
           <el-table :data="withdrawals" highlight-current-row style="width: 100%;">
             <el-table-column prop="userId" label="序号" width="50"></el-table-column>
             <el-table-column prop="userName" label="姓名"></el-table-column>
@@ -135,7 +157,7 @@
             <el-table-column prop="district" label="街道"></el-table-column>
           </el-table>
         </el-tab-pane>
-        <el-tab-pane label="存款信息" name="3">
+        <el-tab-pane label="存款信息" name="3" v-loading="tabLoading">
           <el-table :data="depositList" highlight-current-row style="width: 100%;">
             <el-table-column prop="userId" label="序号" width="50"></el-table-column>
             <el-table-column prop="orderNo" label="订单号"></el-table-column>
@@ -151,9 +173,35 @@
             <el-table-column prop="actualAmount" label="actualAmount"></el-table-column>
           </el-table>
         </el-tab-pane>
-        <el-tab-pane label="转账信息" name="4">转账信息</el-tab-pane>
-        <el-tab-pane label="余额日志信息" name="5">余额日志信息</el-tab-pane>
-        <el-tab-pane label="反水信息" name="6">反水信息</el-tab-pane>
+        <el-tab-pane label="转账信息" name="4" v-loading="tabLoading">
+          <el-table :data="transferList" highlight-current-row style="width: 100%;">
+            <el-table-column prop="userId" label="序号" width="50"></el-table-column>
+            <el-table-column prop="transferNo" label="流水号"></el-table-column>
+            <el-table-column prop="fromGame" label="来自账户"></el-table-column>
+            <el-table-column prop="toGame" label="对方账户"></el-table-column>
+            <el-table-column prop="transferAmount" label="金额(RMB)"></el-table-column>
+            <el-table-column prop="transferType" label="类型"></el-table-column>
+            <el-table-column prop="status" label="状态"></el-table-column>
+            <el-table-column prop="createTime" label="创建时间"></el-table-column>
+            <el-table-column prop="updateTime" label="更新时间"></el-table-column>
+          </el-table>
+        </el-tab-pane>
+        <el-tab-pane label="余额日志信息" name="5" v-loading="tabLoading">
+          <el-table :data="balanceChange" highlight-current-row style="width: 100%;">
+            <el-table-column prop="userId" label="序号" width="50"></el-table-column>
+            <el-table-column prop="orderNo" label="流水号"></el-table-column>
+            <el-table-column prop="adminName" label="姓名"></el-table-column>
+            <el-table-column prop="description" label="备注"></el-table-column>
+            <el-table-column prop="operator" label="操作明细"></el-table-column>
+            <el-table-column prop="beforeBalance" label="上次余额"></el-table-column>
+            <el-table-column prop="afterBalance" label="当前余额"></el-table-column>
+            <el-table-column prop="requestAmount" label="操作金额"></el-table-column>
+            <el-table-column prop="type" label="类型"></el-table-column>
+            <el-table-column prop="updateIp" label="IP地址"></el-table-column>
+            <el-table-column prop="createTime" label="创建时间"></el-table-column>
+            <el-table-column prop="updateTime" label="更新时间"></el-table-column>
+          </el-table>
+        </el-tab-pane>
       </el-tabs>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click.native="userTabVisible = false">关闭</el-button>
@@ -210,21 +258,47 @@
 </template>
 
 <script>
-  import { requestUserList, requestUserDetail, editUserInfo, withdrawalByUserId, depositListByUserId } from '@/api/api'
+  import {
+    requestUserList, requestUserDetail,
+    editUserInfo, withdrawalByUserId,
+    depositListByUserId, transferListByUserId,
+    balanceChangeByUserId} from '@/api/api'
   import ElForm from '../../../node_modules/element-ui/packages/form/src/form.vue'
+  import ElFormItem from '../../../node_modules/element-ui/packages/form/src/form-item.vue'
 
   export default {
-    components: {ElForm},
+    components: {
+      ElFormItem,
+      ElForm},
     name: 'userList',
     data () {
       return {
         filters: {
-          name: ''
+          name: '',
+          status: '',
+          dateRange: ''
         },
+        options: [{
+          value: '',
+          label: '全部'
+        }, {
+          value: '0',
+          label: '未激活'
+        }, {
+          value: '1',
+          label: '激活'
+        }, {
+          value: '2',
+          label: '暂停'
+        }, {
+          value: '3',
+          label: '危险账号'
+        }],
         users: [],
         userDetail: {},
         currtUser: '',
         listLoading: false,
+        tabLoading: false,
         sourceTotal: 100,
         pageIndex: 1,
         pageSize: 10,
@@ -249,7 +323,9 @@
           ]
         },
         withdrawals: [],
-        depositList: []
+        depositList: [],
+        transferList: [],
+        balanceChange: []
       }
     },
     methods: {
@@ -268,14 +344,19 @@
         }
       },
       userDetailClick (index, row) {
+        // 用户详情点击
         this.currtUser = row.userName
         this.userTabVisible = true
         if (this.userTabName === '1') {
           this.getUserDetail(row.userId)
         } else if (this.userTabName === '2') {
-          this.getWithdrawalByUserId(row.userId)
+          this.getWithdrawal(row.userId)
         } else if (this.userTabName === '3') {
-          this.getDepositListByUserId(row.userId)
+          this.getDepositList(row.userId)
+        } else if (this.userTabName === '4') {
+          this.getTransferList(row.userId)
+        } else if (this.userTabName === '5') {
+          this.getBalanceChange(row.userId)
         }
         console.log(index + ' - ' + row)
       },
@@ -290,13 +371,18 @@
         console.log(`当前页: ${index}`)
       },
       tabHandleClick (tab, event) {
-        console.log(tab)
+        // Tab页卡点击
+        console.log(tab.label)
         if (tab.label === '账户信息') {
-          this.getUserDetail()
-        } else if (tab.label === '提款信息') {
-          this.getWithdrawalByUserId(this.userDetail.userId)
+          this.getUserDetail(this.userDetail.userId)
+        } else if (tab.label === '出款信息') {
+          this.getWithdrawal(this.userDetail.userId)
         } else if (tab.label === '存款信息') {
-          this.getDepositListByUserId(this.userDetail.userId)
+          this.getDepositList(this.userDetail.userId)
+        } else if (tab.label === '转账信息') {
+          this.getTransferList(this.userDetail.userId)
+        } else if (tab.label === '余额日志信息') {
+          this.getBalanceChange(this.userDetail.userId)
         }
       },
       editUserInfo () {
@@ -310,11 +396,15 @@
             this.$confirm('确认提交吗？', '提示', {}).then(() => {
               this.editLoading = true
               // let para = Object.assign({}, this.editUserForm)
-              let para = 'userId=' + this.editUserForm.userId + '&address=' + this.editUserForm.address + '' +
-                '&phone=' + this.editUserForm.phone + '&email=' + this.editUserForm.email + '' +
-                '&phoneStatus=' + this.editUserForm.phoneStatus + '&emailStatus=' + this.editUserForm.emailStatus + '' +
-                '&userLevel=' + this.editUserForm.userLevel + '&depositGroupId=' + this.editUserForm.depositGroupId + '' +
-                '&status=' + this.editUserForm.status
+              let para = {userId: this.editUserForm.userId,
+                address: this.editUserForm.address,
+                phone: this.editUserForm.phone,
+                email: this.editUserForm.email,
+                phoneStatus: this.editUserForm.phoneStatus,
+                emailStatus: this.editUserForm.emailStatus,
+                userLevel: this.editUserForm.userLevel,
+                depositGroupId: this.editUserForm.depositGroupId,
+                status: this.editUserForm.status}
               editUserInfo(para).then((res) => {
                 this.editLoading = false
                 let {status, data} = res
@@ -338,7 +428,21 @@
         })
       },
       getUserList () {
-        let para = {userId: 26, pageNumber: this.pageIndex}
+        // 获取用户列表数据
+        let startDate = ''
+        let endDate = ''
+        if (this.filters.dateRange !== '' && this.filters.dateRange.length === 2) {
+          startDate = this.filters.dateRange[0]
+          endDate = this.filters.dateRange[1]
+        }
+        let para = {
+          userId: 26,
+          pageNumber: this.pageIndex,
+          userName: this.filters.name,
+          status: this.filters.status,
+          startTime: startDate,
+          endTime: endDate
+        }
         this.listLoading = true
         requestUserList(para).then((res) => {
           let {status, data, currentPageNumber, totalNumber} = res
@@ -350,27 +454,58 @@
         })
       },
       getUserDetail (userId) {
+        // 获取用户详情数据
         let para = {userId: userId}
+        this.tabLoading = true
         requestUserDetail(para).then((res) => {
           let {status, data} = res
           console.log(status)
           this.userDetail = data[0]
+          this.tabLoading = false
         })
       },
-      getWithdrawalByUserId (userId) {
+      getWithdrawal (userId) {
+        // 获取用户提款数据
         let para = {userId: userId}
+        this.tabLoading = true
         withdrawalByUserId(para).then((res) => {
           let {status, data} = res
           console.log(status)
           this.withdrawals = data
+          this.tabLoading = false
         })
       },
-      getDepositListByUserId (userId) {
+      getDepositList (userId) {
+        // 获取用户存款数据
         let para = {userId: userId}
+        this.tabLoading = true
         depositListByUserId(para).then((res) => {
           let {status, data} = res
           console.log(status)
           this.depositList = data
+          this.tabLoading = false
+        })
+      },
+      getTransferList (userId) {
+        // 获取用户转账数据
+        let para = {userId: userId, pageNumber: 1}
+        this.tabLoading = true
+        transferListByUserId(para).then((res) => {
+          let {status, data, currentPageNumber, totalNumber} = res
+          console.log(status + ' ' + currentPageNumber + ' ' + totalNumber)
+          this.transferList = data
+          this.tabLoading = false
+        })
+      },
+      getBalanceChange (userId) {
+        // 获取用户转账数据
+        let para = {userId: userId, pageNumber: 1}
+        this.tabLoading = true
+        balanceChangeByUserId(para).then((res) => {
+          let {status, data, currentPageNumber, totalNumber} = res
+          console.log(status + ' ' + currentPageNumber + ' ' + totalNumber)
+          this.balanceChange = data
+          this.tabLoading = false
         })
       }
     },

@@ -54,7 +54,6 @@
           if (valid) {
             this.logining = true
             var loginParams = {userName: this.loginForm.account, password: this.loginForm.checkPass}
-            // var loginParams = 'userName=' + this.loginForm.account + '&password=' + this.loginForm.checkPass
             requestLogin(loginParams).then(res => {
               this.logining = false
               let {status, data} = res
@@ -64,13 +63,6 @@
                   message: status,
                   type: 'error'
                 })
-              /* let {code, message, data, user} = res
-              if (code !== 0) {
-                this.$notify({
-                  title: '错误',
-                  message: code + ' ' + message,
-                  type: 'error'
-                }) */
               } else {
                 // this.handleLogin(data, user)
                 let user = {name: data.userName, avatar: 'http://o73el5cs1.bkt.clouddn.com/icon-avatar.jpg'}
