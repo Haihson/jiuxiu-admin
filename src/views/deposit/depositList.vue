@@ -140,7 +140,7 @@
           userName: this.filters.userName,
           orderNo: this.filters.orderNo,
           serialNumber: this.filters.serialNumber,
-          depositType: this.filters.depositType,
+          depositChannelType: this.filters.depositType,
           startTime: startDate,
           endTime: endDate
         }

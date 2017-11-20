@@ -35,16 +35,16 @@
 
       <!--列表-->
       <el-table :data="users" highlight-current-row style="width: 100%;">
-        <!--<el-table-column type="index" width="50"></el-table-column>-->
-        <el-table-column prop="userId" label="序号" width="50"></el-table-column>
-        <el-table-column prop="userName" label="姓名" width="120"></el-table-column>
-        <el-table-column prop="sex" label="性别" width="80" :formatter="formatSex" sortable></el-table-column>
-        <el-table-column prop="phone" label="手机号码" width="130"></el-table-column>
-        <el-table-column prop="email" label="邮箱" width="140"></el-table-column>
-        <el-table-column prop="startTime" label="开始时间" width="130"></el-table-column>
-        <el-table-column prop="endTime" label="结束时间" width="130"></el-table-column>
-        <el-table-column prop="status" label="状态" :formatter="formatStatus"></el-table-column>
-        <el-table-column label="操作" width="90">
+        <el-table-column prop="userName" label="姓名" width="120" align="center"></el-table-column>
+        <el-table-column prop="phone" label="手机号码" width="130" align="center"></el-table-column>
+        <el-table-column prop="userLevel" label="用户等级" align="center"></el-table-column>
+        <el-table-column prop="createTime" label="开始时间" align="center" width="150"
+                         :formatter="formatTime"></el-table-column>
+        <el-table-column prop="updateTime" label="更新时间" align="center" width="150"
+                         :formatter="formatTime"></el-table-column>
+        <el-table-column prop="userBalance" label="Balance" align="center"></el-table-column>
+        <el-table-column prop="status" label="状态" align="center" :formatter="formatUserStatus"></el-table-column>
+        <el-table-column label="操作" align="center" width="90">
           <template slot-scope="scope">
             <el-button type="primary" @click="userDetailClick(scope.$index, scope.row)" size="small">详情</el-button>
           </template>
@@ -70,13 +70,13 @@
                @close="userTabVisible=false" top="5vh" :fullscreen="true" custom-class="dialog-body-padding">
       <el-tabs v-model="userTabName" type="card" @tab-click="tabHandleClick">
         <el-tab-pane label="账户信息" name="1" class="tab-user-info" v-loading="tabLoading">
-          <el-button type="primary" @click="editUserInfo">修改</el-button>
+          <el-button type="primary" @click="editUserInfo" style="float: right">编辑</el-button>
           <form class="el-form el-form--label-left el-form--inline">
             <div class="el-form-item"><label class="el-form-item__label">姓名</label>
               <div class="el-form-item__content"><span>{{userDetail.userName}}</span></div>
             </div>
             <div class="el-form-item"><label class="el-form-item__label">性别</label>
-              <div class="el-form-item__content"><span>{{userDetail.sex}}</span></div>
+              <div class="el-form-item__content"><span>{{ formatSex(userDetail.sex) }}</span></div>
             </div>
             <div class="el-form-item"><label class="el-form-item__label">userBalance</label>
               <div class="el-form-item__content"><span>{{userDetail.userBalance}}</span></div>
@@ -88,22 +88,24 @@
               <div class="el-form-item__content"><span>{{userDetail.phone}}</span></div>
             </div>
             <div class="el-form-item"><label class="el-form-item__label">手机状态</label>
-              <div class="el-form-item__content"><span>{{userDetail.phoneStatus}}</span></div>
+              <div class="el-form-item__content"><span>{{ formatPhoneStatus(userDetail.phoneStatus) }}</span></div>
             </div>
             <div class="el-form-item"><label class="el-form-item__label">创建时间</label>
-              <div class="el-form-item__content"><span>{{userDetail.createTimeStr}}</span></div>
+              <div class="el-form-item__content"><span>{{ formatTime('row', 'col', userDetail.createTimeStr) }}</span>
+              </div>
             </div>
             <div class="el-form-item"><label class="el-form-item__label">最后更新时间</label>
-              <div class="el-form-item__content"><span>{{userDetail.updateTimeStr}}</span></div>
+              <div class="el-form-item__content"><span>{{ formatTime('row', 'col', userDetail.updateTimeStr) }}</span>
+              </div>
             </div>
             <div class="el-form-item"><label class="el-form-item__label">别名</label>
               <div class="el-form-item__content"><span>{{userDetail.aliasName}}</span></div>
             </div>
             <div class="el-form-item"><label class="el-form-item__label">银行卡状态</label>
-              <div class="el-form-item__content"><span>{{userDetail.bankStatus}}</span></div>
+              <div class="el-form-item__content"><span>{{ formatPhoneStatus(userDetail.bankStatus) }}</span></div>
             </div>
             <div class="el-form-item"><label class="el-form-item__label">E-mail状态</label>
-              <div class="el-form-item__content"><span>{{userDetail.emailStatus}}</span></div>
+              <div class="el-form-item__content"><span>{{ formatPhoneStatus(userDetail.emailStatus) }}</span></div>
             </div>
             <div class="el-form-item"><label class="el-form-item__label">AgentCode</label>
               <div class="el-form-item__content"><span>{{userDetail.agentCode}}</span></div>
@@ -118,7 +120,8 @@
               <div class="el-form-item__content"><span>{{userDetail.birthday}}</span></div>
             </div>
             <div class="el-form-item"><label class="el-form-item__label">状态</label>
-              <div class="el-form-item__content"><span>{{userDetail.status}}</span></div>
+              <div class="el-form-item__content"><span>{{ formatUserStatus('row', 'col', userDetail.status) }}</span>
+              </div>
             </div>
             <div class="el-form-item"><label class="el-form-item__label">取款密码</label>
               <div class="el-form-item__content"><span>{{userDetail.withdrawalPassword}}</span></div>
@@ -143,63 +146,48 @@
         </el-tab-pane>
         <el-tab-pane label="出款信息" name="2" v-loading="tabLoading">
           <el-table :data="withdrawals" highlight-current-row style="width: 100%;">
-            <el-table-column prop="userId" label="序号" width="50"></el-table-column>
-            <el-table-column prop="userName" label="姓名"></el-table-column>
-            <el-table-column prop="bankName" label="银行"></el-table-column>
-            <el-table-column prop="branchbankName" label="支行"></el-table-column>
-            <el-table-column prop="bankNo" label="卡号"></el-table-column>
-            <el-table-column prop="withdrawalNo" label="交易单号"></el-table-column>
-            <el-table-column prop="requestWithdrawalAmount" label="金额"></el-table-column>
-            <el-table-column prop="status" label="状态"></el-table-column>
-            <el-table-column prop="createTime" label="时间"></el-table-column>
-            <el-table-column prop="province" label="省"></el-table-column>
-            <el-table-column prop="city" label="市"></el-table-column>
-            <el-table-column prop="district" label="街道"></el-table-column>
+            <el-table-column prop="withdrawalNo" label="交易单号" align="center"></el-table-column>
+            <el-table-column prop="userName" label="姓名" align="center" width="120"></el-table-column>
+            <el-table-column prop="bankName" label="银行" align="center"></el-table-column>
+            <el-table-column prop="bankNo" label="卡号" align="center" width="200"></el-table-column>
+            <el-table-column prop="requestWithdrawalAmount" label="金额" align="center"></el-table-column>
+            <el-table-column prop="createTime" label="时间" align="center" :formatter="formatTime"></el-table-column>
+            <el-table-column prop="status" label="状态" align="center"></el-table-column>
           </el-table>
         </el-tab-pane>
         <el-tab-pane label="存款信息" name="3" v-loading="tabLoading">
           <el-table :data="depositList" highlight-current-row style="width: 100%;">
-            <el-table-column prop="userId" label="序号" width="50"></el-table-column>
-            <el-table-column prop="orderNo" label="订单号"></el-table-column>
-            <el-table-column prop="serialNumber" label="流水号"></el-table-column>
-            <el-table-column prop="offlineBankName" label="银行"></el-table-column>
-            <el-table-column prop="offlinearea" label="地区"></el-table-column>
-            <el-table-column prop="offlineProvince" label="省"></el-table-column>
-            <el-table-column prop="offlineAccountname" label="市"></el-table-column>
-            <el-table-column prop="userName" label="姓名"></el-table-column>
-            <el-table-column prop="bankCode" label="银行简称"></el-table-column>
-            <el-table-column prop="createtime" label="创建时间"></el-table-column>
-            <el-table-column prop="status" label="状态"></el-table-column>
-            <el-table-column prop="actualAmount" label="actualAmount"></el-table-column>
+            <el-table-column prop="orderNo" label="订单号" align="center"></el-table-column>
+            <el-table-column prop="serialNumber" label="流水号" align="center"></el-table-column>
+            <el-table-column prop="userName" label="姓名" align="center" width="120"></el-table-column>
+            <el-table-column prop="depositChannelType" label="存款通道" align="center"
+                             :formatter="formatChannelType"></el-table-column>
+            <el-table-column prop="requestDepositAmount" label="金额" align="center"></el-table-column>
+            <el-table-column prop="createtime" label="创建时间" align="center" :formatter="formatTime"></el-table-column>
+            <el-table-column prop="status" label="状态" align="center"></el-table-column>
           </el-table>
         </el-tab-pane>
         <el-tab-pane label="转账信息" name="4" v-loading="tabLoading">
           <el-table :data="transferList" highlight-current-row style="width: 100%;">
-            <el-table-column prop="userId" label="序号" width="50"></el-table-column>
-            <el-table-column prop="transferNo" label="流水号"></el-table-column>
-            <el-table-column prop="fromGame" label="来自账户"></el-table-column>
-            <el-table-column prop="toGame" label="对方账户"></el-table-column>
-            <el-table-column prop="transferAmount" label="金额(RMB)"></el-table-column>
-            <el-table-column prop="transferType" label="类型"></el-table-column>
-            <el-table-column prop="status" label="状态"></el-table-column>
-            <el-table-column prop="createTime" label="创建时间"></el-table-column>
-            <el-table-column prop="updateTime" label="更新时间"></el-table-column>
+            <el-table-column prop="transferNo" label="流水号" align="center"></el-table-column>
+            <el-table-column prop="userName" label="姓名" align="center" width="120"></el-table-column>
+            <el-table-column prop="fromGame" label="fromGame" align="center"></el-table-column>
+            <el-table-column prop="toGame" label="toGame" align="center"></el-table-column>
+            <el-table-column prop="transferAmount" label="金额" align="center"></el-table-column>
+            <el-table-column prop="createTime" label="创建时间" align="center" :formatter="formatTime"></el-table-column>
+            <el-table-column prop="status" label="状态" align="center"></el-table-column>
           </el-table>
         </el-tab-pane>
         <el-tab-pane label="余额日志信息" name="5" v-loading="tabLoading">
           <el-table :data="balanceChange" highlight-current-row style="width: 100%;">
-            <el-table-column prop="userId" label="序号" width="50"></el-table-column>
-            <el-table-column prop="orderNo" label="流水号"></el-table-column>
-            <el-table-column prop="adminName" label="姓名"></el-table-column>
-            <el-table-column prop="description" label="备注"></el-table-column>
-            <el-table-column prop="operator" label="操作明细"></el-table-column>
-            <el-table-column prop="beforeBalance" label="上次余额"></el-table-column>
-            <el-table-column prop="afterBalance" label="当前余额"></el-table-column>
-            <el-table-column prop="requestAmount" label="操作金额"></el-table-column>
-            <el-table-column prop="type" label="类型"></el-table-column>
-            <el-table-column prop="updateIp" label="IP地址"></el-table-column>
-            <el-table-column prop="createTime" label="创建时间"></el-table-column>
-            <el-table-column prop="updateTime" label="更新时间"></el-table-column>
+            <el-table-column prop="orderNo" label="流水号" align="center"></el-table-column>
+            <el-table-column prop="adminName" label="姓名" align="center" width="120"></el-table-column>
+            <el-table-column prop="operator" label="操作明细" align="center"></el-table-column>
+            <el-table-column prop="beforeBalance" label="上次余额" align="center"></el-table-column>
+            <el-table-column prop="afterBalance" label="当前余额" align="center"></el-table-column>
+            <el-table-column prop="requestAmount" label="操作金额" align="center"></el-table-column>
+            <el-table-column prop="type" label="类型" align="center" :formatter="formatBalanceChange"></el-table-column>
+            <el-table-column prop="createTime" label="创建时间" align="center" :formatter="formatTime"></el-table-column>
           </el-table>
         </el-tab-pane>
       </el-tabs>
@@ -262,14 +250,16 @@
     requestUserList, requestUserDetail,
     editUserInfo, withdrawalByUserId,
     depositListByUserId, transferListByUserId,
-    balanceChangeByUserId} from '@/api/api'
+    balanceChangeByUserId
+  } from '@/api/api'
   import ElForm from '../../../node_modules/element-ui/packages/form/src/form.vue'
   import ElFormItem from '../../../node_modules/element-ui/packages/form/src/form-item.vue'
 
   export default {
     components: {
       ElFormItem,
-      ElForm},
+      ElForm
+    },
     name: 'userList',
     data () {
       return {
@@ -329,18 +319,61 @@
       }
     },
     methods: {
-      formatSex: function (row, column) {
-        return row.sex === 1 ? '男' : row.sex === 0 ? '女' : '未知'
+      formatTime: function (row, column, cellValue) {
+        let date = new Date(cellValue)
+        let YYYY = date.getFullYear() + '-'
+        let MM = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-'
+        let dd = date.getDate() < 10 ? '0' + date.getDate() + ' ' : date.getDate() + ' '
+        let HH = date.getHours() < 10 ? '0' + date.getHours() + ':' : date.getHours() + ':'
+        let mm = date.getMinutes() < 10 ? '0' + date.getMinutes() + ':' : date.getMinutes() + ':'
+        let ss = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds()
+        return YYYY + MM + dd + HH + mm + ss
       },
-      formatStatus: function (row, column) {
-        if (row.status === 0) {
+      formatUserStatus: function (row, column, cellValue) {
+        if (cellValue === 1) {
           return '未激活'
-        } else if (row.status === 1) {
+        } else if (cellValue === 2) {
           return '激活'
-        } else if (row.status === 2) {
+        } else if (cellValue === 3) {
           return '暂停'
-        } else if (row.status === 3) {
+        } else if (cellValue === 4) {
           return '危险账号'
+        }
+      },
+      formatSex: function (sex) {
+        if (sex === 1) {
+          return '男'
+        } else if (sex === 2) {
+          return '女'
+        } else {
+          return '其他'
+        }
+      },
+      formatPhoneStatus: function (status) {
+        if (status === 1) {
+          return '未激活'
+        } else if (status === 2) {
+          return '激活'
+        } else {
+          return ''
+        }
+      },
+      formatChannelType: function (row, column, cellValue) {
+        if (cellValue === 0) {
+          return '在线存款'
+        } else if (cellValue === 1) {
+          return '离线存款'
+        }
+      },
+      formatBalanceChange: function (row, column, cellValue) {
+        if (cellValue === 1) {
+          return '存款'
+        } else if (cellValue === 2) {
+          return '取款'
+        } else if (cellValue === 3) {
+          return '转入游戏'
+        } else if (cellValue === 4) {
+          return '转出游戏'
         }
       },
       userDetailClick (index, row) {
@@ -396,7 +429,8 @@
             this.$confirm('确认提交吗？', '提示', {}).then(() => {
               this.editLoading = true
               // let para = Object.assign({}, this.editUserForm)
-              let para = {userId: this.editUserForm.userId,
+              let para = {
+                userId: this.editUserForm.userId,
                 address: this.editUserForm.address,
                 phone: this.editUserForm.phone,
                 email: this.editUserForm.email,
@@ -404,7 +438,8 @@
                 emailStatus: this.editUserForm.emailStatus,
                 userLevel: this.editUserForm.userLevel,
                 depositGroupId: this.editUserForm.depositGroupId,
-                status: this.editUserForm.status}
+                status: this.editUserForm.status
+              }
               editUserInfo(para).then((res) => {
                 this.editLoading = false
                 let {status, data} = res
