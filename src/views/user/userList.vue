@@ -91,16 +91,15 @@
               <div class="el-form-item__content"><span>{{ formatPhoneStatus(userDetail.phoneStatus) }}</span></div>
             </div>
             <div class="el-form-item"><label class="el-form-item__label">创建时间</label>
-              <div class="el-form-item__content"><span>{{ formatTime('row', 'col', userDetail.createTimeStr) }}</span>
+              <div class="el-form-item__content"><span>{{ formatTime('row', 'col', userDetail.createTime) }}</span>
               </div>
             </div>
+
             <div class="el-form-item"><label class="el-form-item__label">最后更新时间</label>
-              <div class="el-form-item__content"><span>{{ formatTime('row', 'col', userDetail.updateTimeStr) }}</span>
+              <div class="el-form-item__content"><span>{{ formatTime('row', 'col', userDetail.updateTime) }}</span>
               </div>
             </div>
-            <div class="el-form-item"><label class="el-form-item__label">别名</label>
-              <div class="el-form-item__content"><span>{{userDetail.aliasName}}</span></div>
-            </div>
+
             <div class="el-form-item"><label class="el-form-item__label">银行卡状态</label>
               <div class="el-form-item__content"><span>{{ formatPhoneStatus(userDetail.bankStatus) }}</span></div>
             </div>
@@ -112,9 +111,6 @@
             </div>
             <div class="el-form-item"><label class="el-form-item__label">用户级别</label>
               <div class="el-form-item__content"><span>{{userDetail.userLevel}}</span></div>
-            </div>
-            <div class="el-form-item"><label class="el-form-item__label">QQ</label>
-              <div class="el-form-item__content"><span>{{userDetail.qq}}</span></div>
             </div>
             <div class="el-form-item"><label class="el-form-item__label">生日</label>
               <div class="el-form-item__content"><span>{{userDetail.birthday}}</span></div>
@@ -129,8 +125,8 @@
             <div class="el-form-item"><label class="el-form-item__label">地址</label>
               <div class="el-form-item__content"><span>{{userDetail.address}}</span></div>
             </div>
-            <div class="el-form-item"><label class="el-form-item__label">存款ID</label>
-              <div class="el-form-item__content"><span>{{userDetail.depositGroupId}}</span></div>
+            <div class="el-form-item"><label class="el-form-item__label">存款组别</label>
+              <div class="el-form-item__content"><span>{{userDetail.groupName}}</span></div>
             </div>
             <div class="el-form-item"><label class="el-form-item__label">地域</label>
               <div class="el-form-item__content">
@@ -188,7 +184,8 @@
             <el-table-column prop="toGame" label="toGame" align="center"></el-table-column>
             <el-table-column prop="transferAmount" label="金额" align="center"></el-table-column>
             <el-table-column prop="createTime" label="创建时间" align="center" :formatter="formatTime"></el-table-column>
-            <el-table-column prop="status" label="状态" align="center" :formatter="formatTransferStatus"></el-table-column>
+            <el-table-column prop="status" label="状态" align="center"
+                             :formatter="formatTransferStatus"></el-table-column>
           </el-table>
         </el-tab-pane>
         <el-tab-pane label="余额日志信息" name="5" v-loading="tabLoading">
@@ -237,8 +234,15 @@
         <el-form-item label="用户等级">
           <el-input-number v-model="editUserForm.userLevel" :min="1" :max="10"></el-input-number>
         </el-form-item>
-        <el-form-item label="存款ID">
-          <el-input v-model="editUserForm.depositGroupId"></el-input>
+        <el-form-item label="存款组别">
+          <el-select v-model="editUserForm.depositGroupId"  placeholder="请选择">
+            <el-option
+              v-for="item in depositChannelPermissionList"
+              :key="item.depositGroupId"
+              :label="item.groupName"
+              :value="item.depositGroupId">
+            </el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="用户状态">
           <el-radio-group v-model="editUserForm.status">
@@ -255,6 +259,7 @@
       </div>
     </el-dialog>
 
+
   </section>
 </template>
 
@@ -263,7 +268,7 @@
     requestUserList, requestUserDetail,
     editUserInfo, withdrawalByUserId,
     depositListByUserId, transferListByUserId,
-    balanceChangeByUserId
+    balanceChangeByUserId, depositChannelPermissionGroupList
   } from '@/api/api'
   import ElForm from '../../../node_modules/element-ui/packages/form/src/form.vue'
   import ElFormItem from '../../../node_modules/element-ui/packages/form/src/form-item.vue'
@@ -332,7 +337,8 @@
         withdrawals: [],
         depositList: [],
         transferList: [],
-        balanceChange: []
+        balanceChange: [],
+        depositChannelPermissionList: [{'groupName': '普通组别'}]
       }
     },
     methods: {
@@ -584,6 +590,17 @@
           let {status, data, currentPageNumber, totalNumber} = res
           console.log(status + ' ' + currentPageNumber + ' ' + totalNumber)
           this.balanceChange = data
+          this.tabLoading = false
+        })
+      },
+      getDepositPermissionList () {
+        // 获取用户转账数据
+        let para = {}
+        this.tabLoading = true
+        depositChannelPermissionGroupList(para).then((res) => {
+          let {status, data} = res
+          console.log(status)
+          this.depositChannelPermissionList = data
           this.tabLoading = false
         })
       }

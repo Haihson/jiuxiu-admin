@@ -32,3 +32,6 @@ export const depositOrders = params => { return axios.post(`${base}/depositOrder
 
 // 优惠券管理
 export const promotionList = params => { return axios.post(`${base}/promotionList`, params).then(res => res.data) }
+
+// 支付通道
+export const depositChannelPermissionGroupList = params => { return axios.post(`${base}/depositPermissionList`, params).then(res => res.data) }
