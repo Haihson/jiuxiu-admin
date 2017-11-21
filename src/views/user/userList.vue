@@ -8,7 +8,7 @@
             <el-input v-model="filters.name" placeholder="姓名、手机号、邮件"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-select v-model="filters.status" placeholder="请选择">
+            <el-select v-model="filters.status" placeholder="用户状态">
               <el-option
                 v-for="item in options"
                 :key="item.value"
@@ -297,6 +297,7 @@
           value: '3',
           label: '危险账号'
         }],
+        currtLoginUser: {},
         users: [],
         userDetail: {},
         currtUser: '',
@@ -514,7 +515,7 @@
           endDate = this.filters.dateRange[1]
         }
         let para = {
-          userId: 26,
+          userId: this.currtLoginUser.userId,
           pageNumber: this.pageIndex,
           userName: this.filters.name,
           status: this.filters.status,
@@ -588,6 +589,8 @@
       }
     },
     mounted () {
+      let user = JSON.parse(window.sessionStorage.getItem('user'))
+      this.currtLoginUser = user
       this.getUserList()
     }
   }
