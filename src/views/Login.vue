@@ -65,7 +65,10 @@
                 })
               } else {
                 // this.handleLogin(data, user)
-                let user = {name: data.userName, avatar: 'http://o73el5cs1.bkt.clouddn.com/icon-avatar.jpg'}
+                let user = {userId: data.userId,
+                  name: data.userName,
+                  remainder: data.remainder,
+                  avatar: 'http://o73el5cs1.bkt.clouddn.com/icon-avatar.jpg'}
                 this.handleLogin(data.functionList, user)
                 this.$router.addRoutes(routers)
                 this.$router.push({path: '/userList'})

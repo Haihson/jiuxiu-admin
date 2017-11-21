@@ -152,8 +152,21 @@
             <el-table-column prop="bankNo" label="卡号" align="center" width="200"></el-table-column>
             <el-table-column prop="requestWithdrawalAmount" label="金额" align="center"></el-table-column>
             <el-table-column prop="createTime" label="时间" align="center" :formatter="formatTime"></el-table-column>
-            <el-table-column prop="status" label="状态" align="center"></el-table-column>
+            <el-table-column prop="status" label="状态" align="center" :formatter="formatKuanStatus"></el-table-column>
           </el-table>
+
+          <!-- 分页 -->
+          <el-col :span="24" class="toolbar" style="text-align: center; padding-top: 10px;">
+            <el-pagination
+              @size-change="withdrawalHandleSizeChange"
+              @current-change="withdrawalHandleIndexChange"
+              :page-size="withdrawalPageSize"
+              :page-sizes="[10]"
+              :current-page="withdrawalPageIndex"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="withdrawalSourceTotal">
+            </el-pagination>
+          </el-col>
         </el-tab-pane>
         <el-tab-pane label="存款信息" name="3" v-loading="tabLoading">
           <el-table :data="depositList" highlight-current-row style="width: 100%;">
@@ -164,7 +177,7 @@
                              :formatter="formatChannelType"></el-table-column>
             <el-table-column prop="requestDepositAmount" label="金额" align="center"></el-table-column>
             <el-table-column prop="createtime" label="创建时间" align="center" :formatter="formatTime"></el-table-column>
-            <el-table-column prop="status" label="状态" align="center"></el-table-column>
+            <el-table-column prop="status" label="状态" align="center" :formatter="formatKuanStatus"></el-table-column>
           </el-table>
         </el-tab-pane>
         <el-tab-pane label="转账信息" name="4" v-loading="tabLoading">
@@ -175,7 +188,7 @@
             <el-table-column prop="toGame" label="toGame" align="center"></el-table-column>
             <el-table-column prop="transferAmount" label="金额" align="center"></el-table-column>
             <el-table-column prop="createTime" label="创建时间" align="center" :formatter="formatTime"></el-table-column>
-            <el-table-column prop="status" label="状态" align="center"></el-table-column>
+            <el-table-column prop="status" label="状态" align="center" :formatter="formatTransferStatus"></el-table-column>
           </el-table>
         </el-tab-pane>
         <el-tab-pane label="余额日志信息" name="5" v-loading="tabLoading">
@@ -292,12 +305,15 @@
         sourceTotal: 100,
         pageIndex: 1,
         pageSize: 10,
+        withdrawalSourceTotal: 100,
+        withdrawalPageIndex: 1,
+        withdrawalPageSize: 10,
         userTabName: '1',
         userTabVisible: false,
         editUserFormVisible: false,
         editLoading: false,
         editUserForm: {
-          userId: 26,
+          userId: '',
           address: '',
           phone: '',
           email: '',
@@ -376,6 +392,28 @@
           return '转出游戏'
         }
       },
+      formatKuanStatus: function (row, column, cellValue) {
+        if (cellValue === 1) {
+          return 'pending'
+        } else if (cellValue === 2) {
+          return 'pendinghold'
+        } else if (cellValue === 3) {
+          return 'review'
+        } else if (cellValue === 4) {
+          return '成功'
+        } else if (cellValue === 5) {
+          return '异常'
+        }
+      },
+      formatTransferStatus: function (row, column, cellValue) {
+        if (cellValue === 1) {
+          return '失败'
+        } else if (cellValue === 2) {
+          return '成功'
+        } else if (cellValue === 3) {
+          return '未处理'
+        }
+      },
       userDetailClick (index, row) {
         // 用户详情点击
         this.currtUser = row.userName
@@ -396,12 +434,18 @@
       handleSizeChange: function (size) {
         this.pageSize = size
         this.pageIndex = 1
-        console.log(`每页 ${size} 条`)
       },
       handleIndexChange: function (index) {
         this.pageIndex = index
         this.getUserList()
-        console.log(`当前页: ${index}`)
+      },
+      withdrawalHandleSizeChange: function (size) {
+        this.withdrawalPageSize = size
+        this.withdrawalPageIndex = 1
+      },
+      withdrawalHandleIndexChange: function (index) {
+        this.withdrawalPageIndex = index
+        this.getWithdrawal(this.userDetail.userId)
       },
       tabHandleClick (tab, event) {
         // Tab页卡点击
@@ -428,7 +472,6 @@
           if (valid) {
             this.$confirm('确认提交吗？', '提示', {}).then(() => {
               this.editLoading = true
-              // let para = Object.assign({}, this.editUserForm)
               let para = {
                 userId: this.editUserForm.userId,
                 address: this.editUserForm.address,
