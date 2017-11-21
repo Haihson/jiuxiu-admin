@@ -65,7 +65,7 @@
                 })
               } else {
                 // this.handleLogin(data, user)
-                let user = {userId: data.userId,
+                let user = {userId: 26,
                   name: data.userName,
                   remainder: data.remainder,
                   avatar: 'http://o73el5cs1.bkt.clouddn.com/icon-avatar.jpg'}

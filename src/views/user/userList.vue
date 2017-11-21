@@ -545,7 +545,7 @@
         requestUserDetail(para).then((res) => {
           let {status, data} = res
           console.log(status)
-          this.userDetail = data[0]
+          this.userDetail = data
           this.tabLoading = false
         })
       },
