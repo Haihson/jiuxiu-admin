@@ -26,7 +26,7 @@
       return {
         logining: false,
         loginForm: {
-          account: '123',
+          account: 'admin',
           checkPass: '123'
         },
         loginRules: {
@@ -65,7 +65,7 @@
                 })
               } else {
                 // this.handleLogin(data, user)
-                let user = {userId: 26,
+                let user = {userId: data.userId,
                   name: data.userName,
                   remainder: data.remainder,
                   avatar: 'http://o73el5cs1.bkt.clouddn.com/icon-avatar.jpg'}
